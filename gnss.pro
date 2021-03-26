@@ -16,22 +16,32 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    contentwidget.cpp \
     datatype.cpp \
     date.cpp \
+    dockwidget.cpp \
+    filemanager.cpp \
     gnssfile.cpp \
     interpolater.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    observer.cpp
 
 HEADERS += \
+    contentwidget.h \
     datatype.h \
     date.h \
+    dockwidget.h \
+    filemanager.h \
     gnssfile.h \
     interpolater.h \
     mainwindow.h \
-    mat.h
+    mat.h \
+    observer.h
 
 FORMS += \
+    contentwidget.ui \
+    dockwidget.ui \
     mainwindow.ui
 
 TRANSLATIONS += \

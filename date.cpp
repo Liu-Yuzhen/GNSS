@@ -7,14 +7,14 @@ const double SEC_PER_DAY = 86400;
 // ----------------------------------------------
 
 //return difference(seconds)
-double date_sec_diff(const Date& date1, const Date& date2) {
-    double g1 = date2JD(date1) * 86400;
-    double g2 = date2JD(date2) * 86400;
+double Date::date_sec_diff(const Date& date1, const Date& date2) {
+    double g1 = date2MJD(date1) * 86400;
+    double g2 = date2MJD(date2) * 86400;
     return g1 - g2;
 }
 
 
-double date2JD(const Date& date){
+double Date::date2JD(const Date& date){
     int Y = date.year;
     int M = date.month;
     int D = date.day;
@@ -26,30 +26,60 @@ double date2JD(const Date& date){
 }
 
 
-double date2MJD(const Date& date){
+double Date::date2MJD(const Date& date){
     return date2JD(date) - 2400000.5;
 }
 
 
-
-GPST JD2GPST(double jd) {
+WeekSecond Date::JD2GPST(double jd) {
     double week = int((jd - JD_OF_GPS_START) / 7);
     double sec = (jd - JD_OF_GPS_START - 7 * week) * SEC_PER_DAY;
-    return GPST(week, sec);
+    return WeekSecond(week, sec);
 }
 
 
-GPST date2GPST(const Date& date) {
+WeekSecond Date::JD2BDST(double jd){
+    return(GPST2BDST(JD2GPST(jd)));
+}
+
+
+WeekSecond Date::date2GPST(const Date& date) {
     return JD2GPST(date2JD(date));
 }
 
 
-double GPST2JD(const GPST& gpst) {
-    return gpst.week * 7 +
-            gpst.second / 86400 +
+WeekSecond Date::GPST2BDST(const WeekSecond& gpst){
+    WeekSecond t(gpst.week-1356, gpst.second-14);
+    if (t.second < 0 && (t.second += 604800))
+        t.week -= 1;
+    return t;
+}
+
+
+WeekSecond Date::BDST2GPST(const WeekSecond& bdst){
+    WeekSecond gpst(bdst.week+1356, bdst.second+14);
+    if (gpst.second > 604800 && (gpst.second -= 604800))
+        gpst.week -= 1;
+    return gpst;
+}
+
+
+WeekSecond Date::date2BDST(const Date& date){
+    WeekSecond gpst = date2GPST(date);
+    return GPST2BDST(gpst);
+}
+
+
+double Date::GPST2JD(const WeekSecond& WeekSecond) {
+    return WeekSecond.week * 7 +
+            WeekSecond.second / 86400 +
             2444244.5;
 }
 
+
+double Date::BDST2JD(const WeekSecond& bdst){
+    return  Date::GPST2JD(Date::BDST2GPST(bdst));
+}
 
 // ----------------------------------------------
 
@@ -71,7 +101,7 @@ Date::Date(int y, int m, int d, int h, int minute, double second) :
 //    int yy = m > 2 ? y : y - 1;
 //    JD = int(365.25 * yy) + int(30.6001 * (mm + 1)) +
 //            day + hour / 24.0 + 1720981.5;
-    JD = date2JD(*this);
+    JD = Date::date2JD(*this);
 }
 
 
@@ -90,20 +120,29 @@ Date::Date(const Date& date) {
 
 
 double Date::diff(const Date& date)const {
-    return date_sec_diff(*this, date);
+    return Date::date_sec_diff(*this, date);
 }
 
 
-double Date::toJD(){ return date2JD(*this);}
+double Date::toJD(){ return  Date::date2JD(*this);}
 
 
-double Date::toMJD(){ return date2MJD(*this);}
+double Date::toMJD(){ return  Date::date2MJD(*this);}
 
 
-/*
-class GPST
-*/
-GPST::GPST(int week, double sec):week(week), second(sec){}
+bool Date::operator < (const Date& rhs){
+    return Date::date2JD(*this) < Date::date2JD(rhs);
+}
+
+
+bool Date::operator > (const Date& rhs){
+    return Date::date2JD(*this) > Date::date2JD(rhs);
+}
+
+
+bool Date::operator == (const Date& rhs){
+    return Date::date2JD(*this) == Date::date2JD(rhs);
+}
 
 
 

@@ -28,7 +28,7 @@ public:
 
     template<typename U>
     friend std::ostream& operator<<(std::ostream& ost, const Point<U>& pt) {
-        ost << "[" << pt._x << ", " << pt._y << ", " << pt._z << "]" << std::endl;
+        ost << "[" << pt._x << ", " << pt._y << ", " << pt._z << "]";
         return ost;
     }
 

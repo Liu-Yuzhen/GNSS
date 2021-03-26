@@ -1,7 +1,6 @@
-#pragma once
+#ifndef INTERPOLATER_H
+#define INTERPOLATER_H
 #include <vector>
-#include "mat.h"
-#include "datatype.h"
 
 namespace lyz {
 
@@ -24,3 +23,5 @@ static std::vector<double> Newton(const std::vector<double>& x,
 
 }
 
+
+#endif
