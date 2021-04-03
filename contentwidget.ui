@@ -44,7 +44,7 @@
     <rect>
      <x>600</x>
      <y>360</y>
-     <width>125</width>
+     <width>141</width>
      <height>30</height>
     </rect>
    </property>
@@ -65,6 +65,26 @@
    </property>
    <property name="frame">
     <bool>true</bool>
+   </property>
+   <property name="dateTime">
+    <datetime>
+     <hour>0</hour>
+     <minute>0</minute>
+     <second>0</second>
+     <year>2020</year>
+     <month>11</month>
+     <day>5</day>
+    </datetime>
+   </property>
+   <property name="date">
+    <date>
+     <year>2020</year>
+     <month>11</month>
+     <day>5</day>
+    </date>
+   </property>
+   <property name="displayFormat">
+    <string>yyyy/M/d H:mm:ss</string>
    </property>
    <property name="timeSpec">
     <enum>Qt::UTC</enum>

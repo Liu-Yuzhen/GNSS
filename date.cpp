@@ -31,6 +31,10 @@ double Date::date2MJD(const Date& date){
 }
 
 
+
+
+
+
 WeekSecond Date::JD2GPST(double jd) {
     double week = int((jd - JD_OF_GPS_START) / 7);
     double sec = (jd - JD_OF_GPS_START - 7 * week) * SEC_PER_DAY;

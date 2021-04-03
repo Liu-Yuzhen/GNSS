@@ -25,7 +25,8 @@ SOURCES += \
     interpolater.cpp \
     main.cpp \
     mainwindow.cpp \
-    observer.cpp
+    observer.cpp \
+    positionwidget.cpp
 
 HEADERS += \
     contentwidget.h \
@@ -37,12 +38,14 @@ HEADERS += \
     interpolater.h \
     mainwindow.h \
     mat.h \
-    observer.h
+    observer.h \
+    positionwidget.h
 
 FORMS += \
     contentwidget.ui \
     dockwidget.ui \
-    mainwindow.ui
+    mainwindow.ui \
+    positionwidget.ui
 
 TRANSLATIONS += \
     gnss_zh_CN.ts

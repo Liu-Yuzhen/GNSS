@@ -42,9 +42,10 @@ Position::Position(Pointd pt, double clock_erorr, const Date& date) :
 
 
 PositionPtr GPSEhpemeris::compute(const Date& date){
+
     WeekSecond toe_WeekSecond(this->GPSweek, this->toe);
     double date_jd = Date::date2JD(date);
-    double toe_jd = Date::GPST2JD(toe_WeekSecond);
+    double toe_jd = toe2jd(toe_WeekSecond);
     double toc_jd = Date::date2JD(this->toc);
 
 
@@ -84,6 +85,20 @@ PositionPtr GPSEhpemeris::compute(const Date& date){
     PositionPtr pos(new Position(pt*1e-3, delta_t, date));
     pos->prn = this->prn;
     return pos;
+
+}
+
+
+
+double GPSEhpemeris::toe2jd(const WeekSecond& wksec){
+    return Date::GPST2JD(wksec);;
+}
+
+
+
+//bds
+double GPSBEhpemeris::toe2jd(const WeekSecond& wksec){
+    return Date::BDST2JD(wksec);;
 }
 
 

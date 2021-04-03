@@ -1,5 +1,7 @@
 #include "gnssfile.h"
 #include "interpolater.h"
+#include "Eigen/Dense"
+#include <math.h>
 #include <assert.h>
 #include <fstream>
 #include <iostream>
@@ -7,10 +9,13 @@
 #include <iomanip>
 #include <QDebug>
 #include <QString>
+#include <map>
+
 
 namespace lyz{
-
 std::string _line;
+size_t row_per_entry;
+size_t obs_total;
 
 inline std::string trim(const std::string str) {
     size_t start = str.find_first_not_of(" ");
@@ -100,11 +105,15 @@ void read_brdc_gps_like_entry_v2(
 
 void read_brdc_gps_like_entry_v3(
         std::ifstream& ifs,EhpemerisMap& m,
-        std::string& line){
+        std::string& line, bool isgps = true){
 
-    GPSEhpemerisPtr ehp(new GPSEhpemeris);
+    GPSEhpemeris* ehppstd;
+    if (isgps)
+        ehppstd = new GPSEhpemeris;
+    else
+        ehppstd = new GPSBEhpemeris;
 
-
+    GPSEhpemerisPtr ehp(ehppstd);
     ehp->prn += trim(line.substr(0, 3));
 
     int year = atoi(line.substr(4, 4).c_str());//20xx
@@ -247,6 +256,224 @@ inline std::string int_align_end(int val, int length){
 
 }
 
+
+inline std::vector<double> read_entry(
+        std::ifstream& ifs){
+    std::vector<double> values;
+    size_t count = 0;
+
+    for (size_t row = 0; row < row_per_entry; row++){
+        for (size_t i = 0; i < 5; i++){
+            size_t start = i*16;
+            if (start >= _line.length())
+                values.push_back(0);
+            else
+                values.push_back(atof(_line.substr(start,14).c_str()));
+            ++count;
+            if (count == obs_total)
+                break;
+        }
+        std::getline(ifs, _line);
+    }
+    return values;
+}
+
+
+/*
+ * return 0: success
+ * return -1: not open
+ * return -2: unknown file format
+*/
+int ObsHead::read(std::ifstream &ifs){
+    if (!ifs.is_open())
+        return -1;
+
+    std::getline(ifs, _line);
+
+    version = trim(_line.substr(0, 10));
+    if (version != "2.11")
+        return -2;
+    mode = _line[40];
+
+    while(_line.substr(60) !=
+          "# / TYPES OF OBSERV"){
+        std::getline(ifs, _line);
+    }
+
+    int total = atoi(_line.substr(0, 6).c_str());
+    int rows = ceil(atof(_line.substr(0, 6).c_str())/9.0);
+    int count = 0;
+    for (size_t i = 0; i < rows; i++){
+        for (size_t j = 0; j < 9; j++){
+            types_of_obs.push_back(_line.substr(10+j*6, 2));
+            if (++count >= total)
+                break;
+
+        }
+        std::getline(ifs, _line);
+    }
+
+    while(_line.substr(60) !=
+          "INTERVAL"){
+        std::getline(ifs, _line);
+    }
+
+    interval = atof(_line.substr(0,11).c_str());
+
+    while (std::getline(ifs, _line)){
+        if (trim(_line) == "END OF HEADER")
+            break;
+    }
+
+    row_per_entry = ceil(types_of_obs.size() / 5.0);
+    obs_total = types_of_obs.size();
+
+    std::getline(ifs, _line);
+    return 0;
+}
+
+
+int ObsRecord::read(std::ifstream &ifs){
+    // eof
+    if (_line=="")
+        return 0;
+    if (_line == "                            4  1"){
+        std::getline(ifs, _line);
+        std::getline(ifs, _line);
+    }
+
+    int year = atoi(_line.substr(1, 2).c_str()) + 2000;
+    int month = atoi(_line.substr(4, 2).c_str());
+    int day = atoi(_line.substr(7, 2).c_str());
+    int hour = atoi(_line.substr(10, 2).c_str());
+    int min = atoi(_line.substr(13, 2).c_str());
+    double sec = str2f(_line.substr(15, 10));
+    date = Date(year, month, day, hour, min, sec);
+
+    size_t total = atoi(_line.substr(29, 3).c_str());
+    size_t rows = ceil(total / 12.0);
+    size_t count = 0;
+
+    std::vector<std::string> satellite_names;
+    for (size_t row = 0; row < rows; row++){
+        for (size_t col = 0; col < 12; col++){
+            satellite_names.push_back(
+                        _line.substr(32+col*3, 3));
+            ++count;
+            if (count == total)
+                break;
+        }
+        std::getline(ifs, _line);
+    }
+
+    for (size_t i = 0; i < satellite_names.size(); i++){
+        map_[satellite_names[i]] = read_entry(ifs);
+    }
+
+
+    return 1;
+}
+
+
+
+/*
+ * return 0: success
+ * return -1: not open
+ * return -2: unknown file format
+*/
+int ObsFile::open(const std::string& path){
+    _path = path;
+
+    std::ifstream ifs(path);
+    if (!ifs.is_open())
+        return -1;
+
+    if (_head.read(ifs) == -2){
+        return -2;
+    }
+
+    ObsRecord record;
+    while(record.read(ifs)){
+        _records.push_back(record);
+    }
+
+    return 0;
+}
+
+
+
+void ObsFile::getSeudoRanges(
+        const Date& date,
+        std::vector<double>& ranges,
+        std::vector<std::string>& prns){
+
+//    if (date < _head.time_first_obs ||
+//            date - _head.time_first_obs > 86400)
+//        return;
+
+    for (size_t i = 0; i < _records.size(); i++){
+        ObsRecord record = _records[i];
+        if (record.date == date){
+
+            // find seudo range index
+            std::vector<size_t> indecs;
+
+            for (size_t j = 0; j < _head.types_of_obs.size(); j++){
+                char mode = _head.types_of_obs[j][0];
+                if (mode == 'C' || mode == 'P'){
+                    indecs.push_back(j);
+                }
+            }
+
+            // get ranges and prns
+            for (std::map<std::string,
+                 std::vector<double>>::iterator it = record.map_.begin();
+                 it != record.map_.end(); it++){
+
+
+                std::vector<double> values = it->second;
+
+                // maybe blank
+                size_t index = 0;
+                while (values[indecs[index]] == 0.0)
+                    index++;
+
+
+
+                ranges.push_back(values[indecs[index]]);
+                prns.push_back(it->first);
+            }
+
+
+            break;
+        }
+    }
+
+
+
+}
+
+
+Date ObsFile::getClosetDate(const Date& date){
+    Date mindate = _records[0].date;
+    double mindif = mindate - date;
+    for (size_t i = 1; i < _records.size(); i++){
+        double dif = _records[i].date - date;
+        if (dif >= 0){
+            if (abs(dif) < abs(mindif)){
+                mindate = _records[i].date;
+            }
+            break;
+        }
+        else{
+            mindate = _records[i].date;
+            mindif = dif;
+        }
+
+    }
+
+    return mindate;
+}
 
 /*
  * return 0: success
@@ -563,9 +790,11 @@ int BRDCFile::open(const std::string& path){
         {
             switch (_line[0])
             {
+            case('C'):
+                read_brdc_gps_like_entry_v3(ifs, this->_map, _line, false);
+                break;
             case('G'):
             case('E'):
-            case('C'):
             case('I'):
             case('J'):
                 read_brdc_gps_like_entry_v3(ifs, this->_map, _line);
@@ -677,7 +906,7 @@ int BRDCFile::writeSP3(
         head.satellite_accuracy.push_back(0);
     }
 
-    head.write(ofs);
+    //head.write(ofs);
 
 
     int y = head.date_start.year;

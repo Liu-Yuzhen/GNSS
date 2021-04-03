@@ -122,6 +122,8 @@ lyz::PositionPtr FileManager::compute(
 }
 
 
+
+
 QStringList FileManager::getPrn(size_t fileIndex){
     QStringList list;
     if (fileIndex >= _files.size())
@@ -143,5 +145,5 @@ lyz::Date FileManager::getFileDate(size_t fileIndex){
 
 
 int FileManager::saveFile(size_t fileIndex, const QString& path){
-    return _files[fileIndex]->writeSP3(path.toStdString(), 15);
+    return _files[fileIndex]->writeSP3(path.toStdString(), 5);
 }

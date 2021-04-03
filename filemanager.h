@@ -34,6 +34,7 @@ public:
             const lyz::Date& date);
 
 
+
     static FileManager* instance();
     static void destroyInstance();
 

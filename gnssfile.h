@@ -42,6 +42,51 @@ struct SP3Record{
 };
 
 
+struct ObsHead{
+    std::string version;
+    char mode;
+    std::vector<std::string> types_of_obs;
+    Date time_first_obs;
+    double interval;
+
+    int read(std::ifstream& ifs);
+};
+
+
+struct ObsRecord{
+    Date date;
+
+    std::map<std::string, std::vector<double>> map_;
+
+    int read(std::ifstream& ifs);
+};
+
+
+class ObsFile
+{
+public:
+    ObsFile(){}
+    ObsFile(const std::string& path){ open(path);}
+    ObsFile(const char* path){ open(std::string(path)); }
+    int open(const std::string& path);
+    bool isopen() { return !_records.empty(); }
+
+    Date getDateStart(){ return _head.time_first_obs; }
+    Date getClosetDate(const Date& date);
+    void getSeudoRanges(
+            const Date& date,
+            std::vector<double>& ranges,
+            std::vector<std::string>& prns);
+    std::string path(){ return _path; }
+
+
+private:
+    std::string _path;
+    ObsHead _head;
+    std::vector<ObsRecord> _records;
+};
+
+
 class GNSSFile
 {
 public:
@@ -55,6 +100,7 @@ public:
 
     virtual PositionPtr compute(const
             std::string& prn, Date date) = 0;
+
 
     virtual int writeSP3(const std::string& path,
                           int minute) = 0;
@@ -83,12 +129,13 @@ public:
     virtual PositionPtr compute(
             const std::string& prn,
             Date date);
+
     virtual std::vector<std::string> getPrn();
     virtual Date getDateStart();
     virtual int writeSP3(const char* path,
-                          int minute = 15);
+                          int minute = 5);
     virtual int writeSP3(const std::string& path,
-                          int minute = 15);
+                          int minute = 5);
 
 private:
     std::string _version;
@@ -111,10 +158,12 @@ public:
     virtual PositionPtr compute(
             const std::string& prn,
             Date date);
+
+
     virtual std::vector<std::string> getPrn();
     virtual Date getDateStart(){ return head.date_start; }
-    virtual int writeSP3(const char* path, int minute);
-    virtual int writeSP3(const std::string& path,int minute);
+    virtual int writeSP3(const char* path, int minute = 5);
+    virtual int writeSP3(const std::string& path,int minute = 5);
 
 private:
     bool opened;

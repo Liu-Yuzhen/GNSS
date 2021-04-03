@@ -87,8 +87,22 @@ public:
 	double health;
 	double trans_time_of_message;
 	double fit_interval;
+protected:
+    virtual double toe2jd(const WeekSecond& wksec);
 };
 typedef QSharedPointer<GPSEhpemeris> GPSEhpemerisPtr;
+
+
+
+// bdst
+class GPSBEhpemeris: public GPSEhpemeris
+{
+protected:
+    virtual double toe2jd(const WeekSecond& wksec);
+};
+typedef QSharedPointer<GPSBEhpemeris> GPSBEhpemerisPtr;
+
+
 
 
 

@@ -20,7 +20,7 @@
    <bool>false</bool>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>GNSS</string>
   </property>
   <property name="autoFillBackground">
    <bool>false</bool>
@@ -42,9 +42,15 @@
     <addaction name="actionOpen"/>
     <addaction name="actionSave"/>
     <addaction name="separator"/>
-    <addaction name="actionCompute"/>
+   </widget>
+   <widget class="QMenu" name="menuPosition">
+    <property name="title">
+     <string>Position</string>
+    </property>
+    <addaction name="actionSPP"/>
    </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuPosition"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionOpen">
@@ -60,6 +66,11 @@
   <action name="actionCompute">
    <property name="text">
     <string>Compute</string>
+   </property>
+  </action>
+  <action name="actionSPP">
+   <property name="text">
+    <string>SPP</string>
    </property>
   </action>
  </widget>
