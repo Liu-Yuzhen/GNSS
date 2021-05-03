@@ -30,6 +30,7 @@ public:
     bool operator < (const Date& rhs);
     bool operator > (const Date& rhs);
     bool operator == (const Date& rhs);
+    bool operator != (const Date& rhs){ return !((*this)==rhs); }
 
     double operator -(const Date& rhs)const{
         return date_sec_diff(*this, rhs);

@@ -27,10 +27,11 @@ private slots:
     void clear();
 
 private:
-    Vector4d* compute(const lyz::Date& date);
+//    Vector4d* compute(const lyz::Date& date,
+//                          Matrix3d& Qy);
 
-    const double w_earth = 7.2921151467e-5;
-    const double c = 299792458;// speed of light
+//    const double w_earth = 7.2921151467e-5;
+//    const double c = 299792458;// speed of light
     Ui::PositionWidget *ui;
     lyz::ObsFile* obs;
     DockWidget* _dock;

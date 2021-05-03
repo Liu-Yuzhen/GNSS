@@ -20,11 +20,13 @@ SOURCES += \
     datatype.cpp \
     date.cpp \
     dockwidget.cpp \
+    dpwidget.cpp \
     filemanager.cpp \
     gnssfile.cpp \
     interpolater.cpp \
     main.cpp \
     mainwindow.cpp \
+    massfuncs.cpp \
     observer.cpp \
     positionwidget.cpp
 
@@ -33,10 +35,12 @@ HEADERS += \
     datatype.h \
     date.h \
     dockwidget.h \
+    dpwidget.h \
     filemanager.h \
     gnssfile.h \
     interpolater.h \
     mainwindow.h \
+    massfuncs.h \
     mat.h \
     observer.h \
     positionwidget.h
@@ -44,6 +48,7 @@ HEADERS += \
 FORMS += \
     contentwidget.ui \
     dockwidget.ui \
+    dpwidget.ui \
     mainwindow.ui \
     positionwidget.ui
 

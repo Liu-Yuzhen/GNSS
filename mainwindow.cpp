@@ -4,6 +4,7 @@
 #include "filemanager.h"
 #include "gnssfile.h"
 #include "QFileInfo"
+#include "dpwidget.h"
 #include <QString>
 #include <QToolBar>
 #include <QFileDialog>
@@ -43,6 +44,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionSPP, SIGNAL(triggered(bool)),
             this, SLOT(positionStatic()));
 
+    connect(ui->actionSD_DD, SIGNAL(triggered(bool)),
+            this, SLOT(SDDD()));
+
 
     FileManager::instance()->addObserver(new ListObserver(_dock));
     FileManager::instance()->addObserver(new WidgetObserver(_content));
@@ -54,6 +58,12 @@ MainWindow::MainWindow(QWidget *parent)
 void MainWindow::positionStatic(){
     PositionWidget* posw = new PositionWidget(_dock);
     posw->show();
+}
+
+
+void MainWindow::SDDD(){
+    DPWidget* dpw = new DPWidget(_dock);
+    dpw->show();
 }
 
 

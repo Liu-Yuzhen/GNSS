@@ -77,7 +77,15 @@ public:
             const Date& date,
             std::vector<double>& ranges,
             std::vector<std::string>& prns);
+    void getValues(const Date& date, std::string code,
+                         std::vector<double>& phases,
+                         std::vector<std::string>& prns);
     std::string path(){ return _path; }
+    int codeIndex(const std::string& code);
+    std::vector<std::string> getObsType(){
+        return _head.types_of_obs;
+    }
+    Date getDate(){ return _head.time_first_obs; }
 
 
 private:

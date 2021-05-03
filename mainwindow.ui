@@ -48,6 +48,7 @@
      <string>Position</string>
     </property>
     <addaction name="actionSPP"/>
+    <addaction name="actionSD_DD"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuPosition"/>
@@ -71,6 +72,11 @@
   <action name="actionSPP">
    <property name="text">
     <string>SPP</string>
+   </property>
+  </action>
+  <action name="actionSD_DD">
+   <property name="text">
+    <string>SD/DD</string>
    </property>
   </action>
  </widget>

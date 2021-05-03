@@ -21,6 +21,7 @@ private slots:
     void openFile();
     void saveFile();
     void positionStatic();
+    void SDDD();
 
 private:
     void test();

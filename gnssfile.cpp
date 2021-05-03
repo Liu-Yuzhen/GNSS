@@ -392,11 +392,17 @@ int ObsFile::open(const std::string& path){
         return -2;
     }
 
-    ObsRecord record;
-    while(record.read(ifs)){
-        _records.push_back(record);
+
+    while(true){
+        ObsRecord record;
+        if (record.read(ifs))
+            _records.push_back(record);
+        else
+            break;
+
     }
 
+    _head.time_first_obs = _records[0].date;
     return 0;
 }
 
@@ -451,6 +457,59 @@ void ObsFile::getSeudoRanges(
 
 
 
+}
+
+
+void ObsFile::getValues(
+        const Date& date,
+        std::string code,
+        std::vector<double>& phases,
+        std::vector<std::string>& prns)
+{
+    for (size_t i = 0; i < _records.size(); i++){
+        ObsRecord record = _records[i];
+        if (record.date == date){
+
+            // find seudo range index
+            int index = -1;
+
+            for (size_t j = 0; j < _head.types_of_obs.size(); j++){
+                std::string mode = _head.types_of_obs[j];
+                if (mode == code){
+                    index = j;
+                }
+            }
+
+            if (index < 0)
+                return;
+
+            // get phases and prns
+            for (std::map<std::string,
+                 std::vector<double>>::iterator it = record.map_.begin();
+                 it != record.map_.end(); it++){
+
+
+                std::vector<double> values = it->second;
+                double phase = values[index];
+                if (phase == 0.0)
+                    continue;
+                phases.push_back(phase);
+                prns.push_back(it->first);
+            }
+
+
+            break;
+        }
+    }
+}
+
+
+int ObsFile::codeIndex(const std::string& code){
+    for (size_t i = 0; i < _head.types_of_obs.size();i++){
+        if (_head.types_of_obs[i] == code)
+            return i;
+    }
+    return -1;
 }
 
 
@@ -1001,8 +1060,9 @@ PositionPtr SP3File::compute(
     std::vector<PositionPtr> nearest;//(9, Date(0,0,0,0));
     for (size_t i = 0; i < records.size(); i++){
         PositionPtr pos = records[i].getPos(prn);
-        if (pos == nullptr)
+        if (pos == nullptr || pos->clock_error >= 9999)
             continue;
+
         nearest.push_back(pos);
 
     }
