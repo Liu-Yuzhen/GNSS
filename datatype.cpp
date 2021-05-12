@@ -15,7 +15,7 @@ const double GM = 3.986005e14;
 const double w_earth = 7.2921151467e-5;
 const double a_earth = 6378137.0;
 const double f = 1 / 298.257223563;
-
+const double c = 3e8;
 
 
 
@@ -82,6 +82,9 @@ PositionPtr GPSEhpemeris::compute(const Date& date){
 
     double dt = (date_jd - toc_jd) * 86400;
     double delta_t = this->a0 + this->a1 * dt + this->a2 * dt * dt;
+    // relative effect correction
+    double F = - 2 * sqrt(GM) / pow(c, 2);
+    delta_t += F * e * sqrt_a * sin(Ek);
     PositionPtr pos(new Position(pt*1e-3, delta_t, date));
     pos->prn = this->prn;
     return pos;

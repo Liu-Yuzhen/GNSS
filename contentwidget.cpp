@@ -78,7 +78,7 @@ QString pos2qstring(lyz::PositionPtr pos){
 
     if (date.second < 10)
         time += "0";
-    time += QString::number(date.second) + "]\n";
+    time += QString::number(date.second);
     QString s = "[" + QString::fromStdString(pos->prn)
             + " "  + time + "]\n";
 

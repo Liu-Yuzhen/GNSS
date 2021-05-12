@@ -208,7 +208,7 @@ void DPWidget::computeClick(){
 
 
     // get Nt epoch
-    int Nt = 5;
+    int Nt = 20;
     std::vector<std::map<std::string, double>> _ref_prn_value;
     std::vector<std::map<std::string, double>> _unk_prn_value;
     for (int i = 0; i < Nt; i++)
@@ -392,7 +392,9 @@ void DPWidget::computeClick(){
 
     Matrix3d Q;
     Vector4d* refxyz = spp(index, obsr, date, Q);
-
+    (*refxyz)[0] =  ui->boxX->toPlainText().toDouble();
+    (*refxyz)[1] =  ui->boxY->toPlainText().toDouble();
+    (*refxyz)[2] =  ui->boxZ->toPlainText().toDouble();
     // failed to calulate
     if (refxyz == nullptr)
     {

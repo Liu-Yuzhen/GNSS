@@ -2,6 +2,22 @@
 
 const double w_earth = 7.2921151467e-5;
 const double c = 299792458;// speed of light
+const double hd = 41621.712;//40136 + 148.72 * (283.15 - 273.16);
+const double hw = 11000;
+const double hs = 10;
+const double Kd = 155.2 * 1e-7 * (1015.75 / 283.15) * (hd - hs);
+const double Kw = 155.2 * 1e-7 * (4810 / pow(283.15, 2)) * (hw - hs) * 11.66;
+
+
+inline double rad2deg(double rad)
+{
+    return rad / 3.1415926535 * 180;
+}
+
+inline double deg2rad(double deg)
+{
+    return deg / 180.0 * 3.1415926535;
+}
 
 Vector4d* spp(int index, lyz::ObsFile* obs,
               const lyz::Date& date,
@@ -15,6 +31,7 @@ Vector4d* spp(int index, lyz::ObsFile* obs,
 
 
     std::vector<double> pseudoranges;
+    std::vector<double> pseudoranges_corrected;
     std::vector<std::string> prns;
 
 
@@ -76,6 +93,7 @@ Vector4d* spp(int index, lyz::ObsFile* obs,
     Matrix<double, Dynamic, Dynamic> v;
     Matrix<double, Dynamic, Dynamic> P;
     size_t m = pseudoranges.size();
+    pseudoranges_corrected = pseudoranges;
     B.resize(m, 4);
     L.resize(m, 1);
     x.setZero(4, 1);
@@ -109,7 +127,7 @@ Vector4d* spp(int index, lyz::ObsFile* obs,
                 B(i, 2) = (x(2, 0) - xyzt[i][2]) / r0;
                 B(i, 3) = c;
 
-                L(i, 0) = - r0 + pseudoranges[i] + c * xyzt[i][3] - c * x(3, 0);
+                L(i, 0) = - r0 + pseudoranges_corrected[i] + c * xyzt[i][3] - c * x(3, 0);
             }
 
             Qx = (B.transpose() * P * B).inverse();
@@ -140,6 +158,13 @@ Vector4d* spp(int index, lyz::ObsFile* obs,
                     posSat_rot[1]*posSat_rot[1] +
                     posSat_rot[2] * posSat_rot[2]);
 
+            double E = asin(sinE);
+            double Edeg = rad2deg(E);
+            double E2 = Edeg * Edeg;
+            double jd_dE = deg2rad(sqrt(E2 + 6.25));
+            double jd_wE = deg2rad(sqrt(E2 + 2.25));
+            pseudoranges_corrected[kk] = pseudoranges[kk] -
+                    (Kd / sin(jd_dE) + Kw / sin(jd_wE));
 
             P(kk, kk) = sinE > 0.5 ? 1: 2*sinE;
         }
