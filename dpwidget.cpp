@@ -208,7 +208,7 @@ void DPWidget::computeClick(){
 
 
     // get Nt epoch
-    int Nt = 20;
+    int Nt = 10;
     std::vector<std::map<std::string, double>> _ref_prn_value;
     std::vector<std::map<std::string, double>> _unk_prn_value;
     for (int i = 0; i < Nt; i++)
@@ -411,11 +411,11 @@ void DPWidget::computeClick(){
     if (mode[0] == 'L'){
         double wave = 0;
         if (mode[1] == '1')
-            wave = 0.1904;
+            wave = 0.19029367279836487;// 1575.42e6
         else if (mode[1] == '2')
-            wave = 0.2442;
+            wave = 0.24421021342456825;//1227.6e6
         else if (mode[1] == '5')
-            wave = 0.2548;
+            wave = 0.25482804879085386;//1176.45e6
 
         if (method == "SD")
             xyz = phaseSD(ref_values, unk_values, xyzts, refxyz, wave);
@@ -785,67 +785,67 @@ Vector3d* DPWidget::phaseSD(
 
 
 
-    // fix ambiguity and solve again
-    for (int i = 3 + nt; i < 2 + nt + nj; i++)
-    {
-        x(i, 0) = round(x(i, 0));
-    }
-    Matrix<double, Dynamic, Dynamic> _x;
-    _x.resize(3 + nt, 1);
-    for (int i = 0; i < 3 + nt; i++)
-    {
-        _x(i,0) = x(i,0);
-    }
+//    // fix ambiguity and solve again
+//    for (int i = 3 + nt; i < 2 + nt + nj; i++)
+//    {
+//        x(i, 0) = round(x(i, 0));
+//    }
+//    Matrix<double, Dynamic, Dynamic> _x;
+//    _x.resize(3 + nt, 1);
+//    for (int i = 0; i < 3 + nt; i++)
+//    {
+//        _x(i,0) = x(i,0);
+//    }
 
 
 
-    B.setZero(nj * nt, 3 + nt);
-    v.resize(nt + 3, 1);
+//    B.setZero(nj * nt, 3 + nt);
+//    v.resize(nt + 3, 1);
 
-    for (int it = 0; it < max_iteration; it++)
-    {
-        // for every epoch
-        for (int t = 0; t < nt; t++)
-        {
-            // for every satellite
-            double dx = x(0,0) - xyzts[t][0][0];
-            double dy = x(1,0) - xyzts[t][0][1];
-            double dz = x(2,0) - xyzts[t][0][2];
-            double r = sqrt(dx*dx+dy*dy+dz*dz);
-            L(t * nj, 0) = sd[t][0] + distance_ref_sat[t][0] - x(3+t, 0) - r;
-            B(t * nj, 0) = dx / r;//dx
-            B(t * nj, 1) = dy / r;//dy
-            B(t * nj, 2) = dz / r;//dz
+//    for (int it = 0; it < max_iteration; it++)
+//    {
+//        // for every epoch
+//        for (int t = 0; t < nt; t++)
+//        {
+//            // for every satellite
+//            double dx = x(0,0) - xyzts[t][0][0];
+//            double dy = x(1,0) - xyzts[t][0][1];
+//            double dz = x(2,0) - xyzts[t][0][2];
+//            double r = sqrt(dx*dx+dy*dy+dz*dz);
+//            L(t * nj, 0) = sd[t][0] + distance_ref_sat[t][0] - x(3+t, 0) - r;
+//            B(t * nj, 0) = dx / r;//dx
+//            B(t * nj, 1) = dy / r;//dy
+//            B(t * nj, 2) = dz / r;//dz
 
-            B(t * nj, 3 + t) = 1;
+//            B(t * nj, 3 + t) = 1;
 
-            for (int s = 1; s < nj; s++)
-            {
-                int row = t * nj + s;
-                double dx = _x(0,0) - xyzts[t][s][0];
-                double dy = _x(1,0) - xyzts[t][s][1];
-                double dz = _x(2,0) - xyzts[t][s][2];
-                double r = sqrt(dx*dx+dy*dy+dz*dz);
+//            for (int s = 1; s < nj; s++)
+//            {
+//                int row = t * nj + s;
+//                double dx = _x(0,0) - xyzts[t][s][0];
+//                double dy = _x(1,0) - xyzts[t][s][1];
+//                double dz = _x(2,0) - xyzts[t][s][2];
+//                double r = sqrt(dx*dx+dy*dy+dz*dz);
 
-                L(row, 0) = sd[t][s] + distance_ref_sat[t][s] - r
-                        - _x(3+t, 0) - wavelen * x(3+nt+s-1,0);
+//                L(row, 0) = sd[t][s] + distance_ref_sat[t][s] - r
+//                        - _x(3+t, 0) - wavelen * x(3+nt+s-1,0);
 
-                B(row, 0) = dx / r;
-                B(row, 1) = dy / r;
-                B(row, 2) = dz / r;
+//                B(row, 0) = dx / r;
+//                B(row, 1) = dy / r;
+//                B(row, 2) = dz / r;
 
-                B(row, 3 + t) = 1;
-            }
+//                B(row, 3 + t) = 1;
+//            }
 
 
-        }
+//        }
 
-        Matrix<double, Dynamic, Dynamic> BT = B.transpose();
-        v = (BT * B).inverse() * (BT * L);
-        _x += v;
-        if (v.norm() < 1e-4)
-            break;
-    }
+//        Matrix<double, Dynamic, Dynamic> BT = B.transpose();
+//        v = (BT * B).inverse() * (BT * L);
+//        _x += v;
+//        if (v.norm() < 1e-4)
+//            break;
+//    }
 
     qDebug() << "[phase SD]";
     qDebug() << "unk: ";
@@ -854,7 +854,7 @@ Vector3d* DPWidget::phaseSD(
     }
     qDebug() << "\n";
 
-    return new Vector3d(_x(0,0), _x(1,0), _x(2,0));
+    return new Vector3d(x(0,0), x(1,0), x(2,0));
 }
 
 
@@ -963,7 +963,7 @@ Vector3d* DPWidget::phaseDD(
         Matrix<double, Dynamic, Dynamic> BT = B.transpose();
         v = (BT * P * B).inverse() * (BT * P * L);
         x += v;
-
+        std::cout << B << std::endl;
         if (v.norm() < 1e-4)
             break;
 
