@@ -36,6 +36,45 @@ DPWidget::DPWidget(DockWidget* dock,QWidget *parent) :
 }
 
 
+void fix(const Eigen::Matrix<double, Dynamic, Dynamic>& Q,
+         const Eigen::Matrix<double, Dynamic, Dynamic>& a,
+         Eigen::Matrix<double, Dynamic, Dynamic>& a_hat,
+         double sigma = 0.05)
+{
+    int n = Q.rows();
+    a_hat.resize(n, 1);
+    double min_val = 1e10;
+    // initialize
+    Eigen::Matrix<double, Dynamic, Dynamic> aint;
+    aint.resize(n, 1);
+    for (int i = 1; i < n; i++)
+    {
+        aint(i, 0) = round(a(i, 0));
+    }
+
+    for (int i = 0; i < n; i++)
+    {
+        double interval = 3 * sigma * sqrt(Q(i, i));
+        int start = static_cast<int>(a(i, 0) - interval);
+        int end = static_cast<int>(a(i, 0) + interval);
+        for (int k = start; k < end; k++)
+        {
+            aint(i, 0) = k;
+            Eigen::Matrix<double, Dynamic, Dynamic> diff = aint - a;
+            Eigen::Matrix<double, Dynamic, Dynamic> res = diff.transpose() * Q * diff;
+            double val = res(0, 0);
+            if (val < min_val)
+            {
+                min_val = val;
+                a_hat = aint.replicate(1, 1);
+            }
+        }
+
+    }
+
+    std::cout << "a_hat:\n" << a_hat << std::endl;
+}
+
 
 void DPWidget::openFile1(){
     QString path = QFileDialog::getOpenFileName(
@@ -963,21 +1002,41 @@ Vector3d* DPWidget::phaseDD(
         Matrix<double, Dynamic, Dynamic> BT = B.transpose();
         v = (BT * P * B).inverse() * (BT * P * L);
         x += v;
-        std::cout << B << std::endl;
+
         if (v.norm() < 1e-4)
             break;
 
     }
 
-    B.resize((nj-1) * nt, 3);
-    v.resize(3, 1);
+
     // fix ambiguity
+    Matrix<double, Dynamic, Dynamic> Q, Q_for_a;
+    Q = (B.transpose() * P * B).inverse();
+    Q_for_a.resize(Q.rows() - 3, Q.cols() - 3);
+    for (int i = 0; i < Q_for_a.rows(); i++)
+    {
+        for (int j = 0; j < Q_for_a.rows(); j++)
+        {
+            Q_for_a(i, j) = Q(i + 3, j + 3);
+        }
+    }
+    Matrix<double, Dynamic, Dynamic> ambiguity;
+    ambiguity.resize(nj - 1, 1);
+    for (int i = 0; i < nj - 1; i++)
+    {
+        ambiguity(i, 0) = x(i + 3, 0);
+    }
+    Matrix<double, Dynamic, Dynamic> ambiguity_fixed;
+    fix(Q_for_a, ambiguity, ambiguity_fixed);
+
     for (int n = 3; n < nj + 2; n++)
     {
-        x(n, 0) = round(x(n, 0));
+        x(n, 0) = ambiguity_fixed(n - 3, 0);
     }
 
 
+    B.resize((nj-1) * nt, 3);
+    v.resize(3, 1);
     Matrix<double, 3, 1> _x;
     for (int i = 0; i < 3; i++){
         _x(i, 0) = x(i, 0);
