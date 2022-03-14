@@ -30,5 +30,5 @@
 
 ## Demo
 
-![image-20210503195131109](https://github.com/Liu-Yuzhen/GNSS/blob/master/pic/image-20210503194912828.png)
+![image-20210503195131109](./pic/image-20210503194912828.png)
 
